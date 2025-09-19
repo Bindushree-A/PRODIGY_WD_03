@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tic Tac Toe</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    transition: background 0.8s cubic-bezier(.4,2,.6,1.1);
+  }
+  .game-container {
+    background: rgba(255,255,255,0.97);
+    padding: 24px 20px 36px 20px;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(50, 50, 120, 0.18);
+    text-align: center;
+    width: 350px;
+    position: relative;
+    transition: box-shadow 0.6s;
+  }
+  /* Marquee effect for title */
+  .marquee-container {
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .marquee {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee 10s linear infinite;
+    font-size: 2rem;
+    font-weight: bold;
+    background: linear-gradient(90deg, #1976d2 40%, #ff8c94 90%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 4px;
+    text-shadow: 0 3px 10px #fff8, 0 1px 0 #2222;
+  }
+  @keyframes marquee {
+    0% { transform: translateX(35%);}
+    100% { transform: translateX(-100%);}
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(3, 80px);
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+    background: linear-gradient(135deg, #a1ffce 0%, #faffd1 100%);
+    padding: 8px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(254,192,248,0.18);
+    transition: background 0.9s;
+  }
+  button.cell {
+    background: linear-gradient(135deg, #e1eec3 0%, #f05053 100%);
+    border: none;
+    border-radius: 10px;
+    font-size: 2.5rem;
+    cursor: pointer;
+    color: #1976d2;
+    font-family: inherit;
+    font-weight: bold;
+    transition:
+      background 0.44s,
+      color 0.4s,
+      transform 0.32s;
+    box-shadow: 0 2px 8px rgba(30,30,70,0.07);
+  }
+  button.cell:hover:not(:disabled) {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    color: #e74c3c;
+    transform: scale(1.07);
+  }
+  button.cell:disabled {
+    cursor: default;
+    opacity: 0.65;
+    background: #ddd;
+    color: #555;
+  }
+  .status {
+    font-size: 1.25rem;
+    margin-bottom: 14px;
+    min-height: 28px;
+    color: #34495e;
+    transition: color 0.37s;
+    font-weight: bold;
+    text-shadow: 0 2px 12px #a6c1ee22;
+  }
+  button.reset-btn {
+    background: linear-gradient(90deg, #1976d2 60%, #ff8c94 100%);
+    color: white;
+    border: none;
+    padding: 10px 22px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: background 0.4s, transform 0.24s;
+    box-shadow: 0 2px 8px #a6c1ee44;
+  }
+  button.reset-btn:hover {
+    background: linear-gradient(90deg, #ff8c94 10%, #1976d2 100%);
+    transform: scale(1.07);
+  }
+</style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="marquee-container">
+      <div class="marquee">🎮 Welcome to Colorful Tic Tac Toe! 🎉</div>
+    </div>
+    <div class="board" id="board">
+      <button class="cell" data-index="0"></button>
+      <button class="cell" data-index="1"></button>
+      <button class="cell" data-index="2"></button>
+      <button class="cell" data-index="3"></button>
+      <button class="cell" data-index="4"></button>
+      <button class="cell" data-index="5"></button>
+      <button class="cell" data-index="6"></button>
+      <button class="cell" data-index="7"></button>
+      <button class="cell" data-index="8"></button>
+    </div>
+    <div class="status" id="status"></div>
+    <button class="reset-btn" id="resetBtn">🔄 Reset Game</button>
+  </div>
+
+  <script>
+    const board = document.getElementById('board');
+    const cells = Array.from(document.querySelectorAll('.cell'));
+    const status = document.getElementById('status');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let currentPlayer = 'X';
+    let gameState = Array(9).fill('');
+    let isGameActive = true;
+
+    const colorMap = {
+      X: "#1976d2",
+      O: "#ff8c94"
+    };
+    const bgColorMap = {
+      X: "linear-gradient(135deg, #e3ffe7 0%, #d9e7ff 100%)",
+      O: "linear-gradient(135deg, #ffe5ec 0%, #fbb1b1 100%)"
+    };
+
+    const winningConditions = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    function handleCellPlayed(clickedCell, clickedIndex) {
+      gameState[clickedIndex] = currentPlayer;
+      clickedCell.textContent = currentPlayer;
+      clickedCell.disabled = true;
+      clickedCell.style.color = colorMap[currentPlayer];
+      clickedCell.style.background = bgColorMap[currentPlayer];
+      clickedCell.style.transform = "scale(1.15)";
+      setTimeout(() => clickedCell.style.transform = "", 140);
+    }
+
+    function handlePlayerChange() {
+      currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
+      status.textContent = `Player ${currentPlayer}'s turn`;
+      status.style.color = colorMap[currentPlayer];
+    }
+
+    function handleResultValidation() {
+      let roundWon = false;
+      for (let i = 0; i < winningConditions.length; i++) {
+        const winCondition = winningConditions[i];
+        const a = gameState[winCondition[0]];
+        const b = gameState[winCondition[1]];
+        const c = gameState[winCondition[2]];
+        if (a === '' || b === '' || c === '') continue;
+        if (a === b && b === c) {
+          roundWon = true;
+          // Winning highlight
+          winCondition.forEach(idx => {
+            cells[idx].style.background =
+              "linear-gradient(120deg, #f7971e 0%, #ffd200 100%)";
+            cells[idx].style.color = "#fff";
+            cells[idx].style.boxShadow = "0 0 15px #ffd200cc";
+          });
+          break;
+        }
+      }
+      if (roundWon) {
+        status.textContent = `🎉 Player ${currentPlayer} has won! 🎉`;
+        status.style.color = "#ffd200";
+        isGameActive = false;
+        cells.forEach(cell => cell.disabled = true);
+        return;
+      }
+      if (!gameState.includes('')) {
+        status.textContent = `🤝 Game ended in a draw!`;
+        status.style.color = "#6c3483";
+        isGameActive = false;
+        return;
+      }
+      handlePlayerChange();
+    }
+
+    function handleCellClick(event) {
+      const clickedCell = event.target;
+      const clickedIndex = parseInt(clickedCell.getAttribute('data-index'));
+      if (gameState[clickedIndex] !== '' || !isGameActive) return;
+      handleCellPlayed(clickedCell, clickedIndex);
+      handleResultValidation();
+    }
+
+    function handleRestartGame() {
+      currentPlayer = 'X';
+      gameState = Array(9).fill('');
+      isGameActive = true;
+      status.textContent = `Player ${currentPlayer}'s turn`;
+      status.style.color = colorMap[currentPlayer];
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.disabled = false;
+        cell.style.background = "linear-gradient(135deg, #e1eec3 0%, #f05053 100%)";
+        cell.style.color = colorMap['X'];
+        cell.style.boxShadow = "0 2px 8px rgba(30,30,70,0.07)";
+      });
+    }
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    resetBtn.addEventListener('click', handleRestartGame);
+
+    status.textContent = `Player ${currentPlayer}'s turn`;
+    status.style.color = colorMap[currentPlayer];
+  </script>
+</body>
+</html>
