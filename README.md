@@ -17,7 +17,7 @@ An interactive Tic-Tac-Toe game built using HTML, CSS, and JavaScript. Users can
 
 ## Installation
 1. Clone this repo:
-2. Open `index.html` in your web browser.
+2. Open `tic tac toe.html` in your web browser.
 
 ## Usage
 - Players take turns clicking empty cells.
